@@ -1,0 +1,76 @@
+version: '3.6'
+services:
+  datadog:
+    container_name: datadog-agent
+    image: datadog/agent:latest
+    pid: host
+    cgroup: host
+    env_file:
+      - ~/linux.docker.env  ## This file sets DD_API_KEY and DD_SITE
+    environment:
+      ## GLOBALS
+      # - DD_API_KEY
+      - DD_SITE
+      - DD_HOSTNAME=COMP-C02DW0E1ML87  ## docker-lloyd
+      - DD_ENV=dev
+      - DD_TAGS=city:toronto owner:lloyd
+      - DD_AC_EXCLUDE=name:datadog-agent # exclude this container from data collection
+      - DD_LOG_LEVEL=WARNING
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - SD_BACKEND=docker
+      ## TAGS
+      - DD_DOCKER_LABELS_AS_TAGS=true
+      - DD_DOCKER_ENV_AS_TAGS=true
+      ## APM https://docs.datadoghq.com/agent/docker/apm/
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_APM_IGNORE_RESOURCES=GET /static, GET /health # Exclude resources that are not necessary to track and maybe too verbose
+      ## LOGS https://docs.datadoghq.com/agent/docker/log/
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      ## LIVE PROCESSES https://docs.datadoghq.com/graphing/infrastructure/process/?tab=docker
+      - DD_PROCESS_AGENT_ENABLED=true
+      ## DOGSTATSD
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+    restart: on-failure
+    ports:
+      - 8126:8126/tcp # APM available from any host
+      - 8125:8125/udp # Dogstatsd
+    volumes:
+     - '/var/run/docker.sock:/var/run/docker.sock:ro'
+     - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+#    - '/proc/:/host/proc/:ro'
+     - '/opt/datadog-agent/run:/opt/datadog-agent/run:rw'
+#    - '/sys/fs/cgroup:/host/sys/fs/cgroup:ro'  
+     - /etc/passwd:/etc/passwd:ro # LIVE PROCESSES
+    networks:
+       - my-net # Created with docker network create my-net and deleted with docker network rm my-net
+  payroll:
+    image: lloydwilliams/payroll-suse-jdk11:11.0.1
+    container_name: payroll-suse-jdk11
+    environment:
+      - DD_AGENT_HOST=datadog-agent
+      - DD_TRACE_AGENT_PORT=8126
+      - JAVA_TOOL_OPTIONS="-javaagent:/dd-java-agent.jar" 
+      - JAVA_OPTS="-XX:FlightRecorderOptions=stackdepth=256"  ## Flight recorder options are for the continuous profiler
+      - DD_SERVICE=payroll
+      - DD_ENV=dev
+      - DD_VERSION=11.0.1
+      - DD_TAGS=app:payroll
+      - DD_PROFILING_ENABLED=true
+      - DD_PROFILING_DDPROF_MEMLEAK_ENABLED=true
+    labels:
+        com.datadoghq.ad.logs: '[{"source":"payroll","service":"payroll"}]'
+#        com.datadoghq.ad.logs: '[{"source": "payroll", "service": "payroll", "log_processing_rules": [{"type": "multi_line", "name": "log_start_with_date", "pattern" : "\\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])"}]}]'
+#        com.datadoghq.ad.logs: '[{"type":"file", "source": "sample_app", "service": "sample_service", "path": "/logs/app/prod.log"}]'
+#        com.datadoghq.ad.check_names: '["mysql"]'
+#        com.datadoghq.ad.init_configs: '[{}]'
+#        com.datadoghq.ad.instances: '[{"server": "%%host%%", "user": "datadog","pass": "tacosandburritos"}]'
+    ports:
+      - '2022:22'
+      - '8080:8080'
+    networks:
+       - my-net # Created with docker network create my-net and deleted with docker network rm my-net
+networks:
+  my-net:
+    external: false
