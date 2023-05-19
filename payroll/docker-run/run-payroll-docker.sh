@@ -13,6 +13,7 @@
 docker run -d --name payroll-suse-jdk11 \
            -e DD_AGENT_HOST=datadog-agent \
            -e DD_TRACE_AGENT_PORT=8126 \
+           -e DD_LOGS_INJECTION=true \
            -e JAVA_TOOL_OPTIONS="-javaagent:/dd-java-agent.jar" \
            -e JAVA_OPTS="-XX:FlightRecorderOptions=stackdepth=256" \
            -e DD_SERVICE=payroll \

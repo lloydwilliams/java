@@ -7,7 +7,8 @@
 # labels:
 #    com.datadoghq.ad.logs: '[{"type":"file", "source": "java", "service": "app", "path": "/logs/app/prod.log"}, {"type": "docker", "source": "app_container", "service": "app"}]'
 #
-# -l com.datadoghq.ad.logs='[{"type":"file", "source": "payroll-docker", "service": "payroll", "path": "/logs/payroll-app.log"}]' \
+# -l
+#
 
 ## MacOS ##
 # docker run -d --name datadog-agent \
@@ -28,7 +29,11 @@
 # -v /var/lib/docker/containers:/var/lib/docker/containers:ro
 # To collect containers logs from files. Available in the Datadog Agent 6.27.0/7.27.0+
 
-# 
+# https://docs.datadoghq.com/logs/troubleshooting
+# https://docs.datadoghq.com/network_monitoring/performance/setup/?tab=docker
+
+# NO MAC OS
+# Datadog Network Performance Monitoring does not support macOS platforms.
 
 # Datadog Agent
 docker run -d --name datadog-agent \
@@ -41,11 +46,22 @@ docker run -d --name datadog-agent \
               -e DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true \
               -e DD_PROCESS_AGENT_ENABLED=true \
               -e DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true \
+              -e DD_SYSTEM_PROBE_NETWORK_ENABLED=true \
               -p 8126:8126 \
               -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
+              -v /sys/kernel/debug:/sys/kernel/debug \
               -v /var/run/docker.sock:/var/run/docker.sock:ro \
               -v /var/lib/docker/containers:/var/lib/docker/containers:ro \
               -v /opt/datadog-agent/run:/opt/datadog-agent/run:rw \
               -v /proc/:/host/proc/:ro \
               -v /Users/lloyd.williams/u01/docker/logs:/logs \
+              --security-opt apparmor:unconfined \
+              --cap-add=SYS_ADMIN \
+              --cap-add=SYS_RESOURCE \
+              --cap-add=SYS_PTRACE \
+              --cap-add=NET_ADMIN \
+              --cap-add=NET_BROADCAST \
+              --cap-add=NET_RAW \
+              --cap-add=IPC_LOCK \
+              --cap-add=CHOWN \
               gcr.io/datadoghq/agent:latest
