@@ -1,0 +1,6 @@
+
+Follow the instructions in Datadog to get your worker-config.json 
+
+and modify scripts accordingly. 
+
+ 

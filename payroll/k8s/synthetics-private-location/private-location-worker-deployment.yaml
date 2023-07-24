@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: datadog-private-location-worker
+    namespace: default
+spec:
+    selector:
+        matchLabels:
+            app: private-location
+    template:
+        metadata:
+            name: datadog-private-location-worker
+            labels:
+                app: private-location
+        spec:
+            containers:
+                - name: datadog-private-location-worker
+                  image: gcr.io/datadoghq/synthetics-private-location-worker
+                  volumeMounts:
+                      - mountPath: /etc/datadog/synthetics-check-runner.json
+                        name: worker-config
+                        subPath: worker-config-lloyd-aks-payroll-k8s-cluster-43b9672118954a96da5746c472ce260b.json
+            volumes:
+                - name: worker-config
+                  secret:
+                      secretName: private-location-worker-config
