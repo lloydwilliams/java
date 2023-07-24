@@ -21,6 +21,8 @@ spec:
         tags.datadoghq.com/env: prod
         tags.datadoghq.com/service: payroll
         tags.datadoghq.com/version: 11.0.1
+    annotations:
+        ad.datadoghq.com/payroll.logs: '[{"source":"payroll","service":"payroll"}]'
     spec:
       volumes:
         - name: apmsocketpath
@@ -33,6 +35,9 @@ spec:
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog
+            - name: dsdsocket
+              mountPath: /var/run/datadog
+              readOnly: true
           env:
             - name: JAVA_TOOL_OPTIONS
               value: '-javaagent:/dd-java-agent.jar'
