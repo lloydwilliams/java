@@ -63,3 +63,5 @@ spec:
               value: 'true'
             - name: DD_APPSEC_ENABLED
               value: "true"
+            - name: DD_DYNAMIC_INSTRUMENTATION_ENABLED
+              value: "true"

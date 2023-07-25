@@ -135,6 +135,7 @@ datadog:
     # datadog.kubeStateMetricsCore.enabled -- Enable the kubernetes_state_core check in the Cluster Agent (Requires Cluster Agent 1.12.0+)
 
     ## ref: https://docs.datadoghq.com/integrations/kubernetes_state_core
+    ## https://github.com/DataDog/helm-charts/issues/415
     enabled: true
 
     rbac:
@@ -928,7 +929,10 @@ clusterAgent:
 
   ## The Cluster-Agent supports many additional environment variables
   ## ref: https://docs.datadoghq.com/agent/cluster_agent/commands/#cluster-agent-options
-  env: []
+  # env: []
+  env:
+    - name: "DD_ADMISSION_CONTROLLER_ADD_AKS_SELECTORS"
+      value: "true"
 
   # clusterAgent.envFrom --  Set environment variables specific to Cluster Agent from configMaps and/or secrets
 
@@ -949,7 +953,7 @@ clusterAgent:
     enabled: true
 
     # clusterAgent.admissionController.mutateUnlabelled -- Enable injecting config without having the pod label 'admission.datadoghq.com/enabled="true"'
-    mutateUnlabelled: false
+    mutateUnlabelled: true
 
     # clusterAgent.admissionController.configMode -- The kind of configuration to be injected, it can be "hostip", "service", or "socket".
 
