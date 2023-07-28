@@ -45,6 +45,20 @@ https://docs.datadoghq.com/logs/log_collection/java/?tab=log4j#raw-format
 
 
 
+then add a Datadog Log Pipeline Processor with a Grok Parsing Rule corresponding to your pattern that extracts the trace id.
+
+`payroll1 %{date("yyyy-MM-dd'T'HH:mm:ss.SSSZ"):date}\s+%{word:level}\s+\[%{data:java.thread}\]\s+\[%{data:java.class}\s+%{data:java.method}:%{number:java.line}\]\s+\[%{word:dd.trace_id}?\]\s+%{data:msg}`
+
+then a Trace Id Remapper setting the trace id attribute to:
+
+```
+dd.trace_id
+```
+
+
+
+
+
 **[logback-spring.xml](https://github.com/lloydwilliams/java/blob/main/payroll/eclipse/workspace11/payroll/src/main/resources/logback-spring.xml)**
 
 ![<https://github.com/lloydwilliams/java|lloydwilliams/java>](https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png)[lloydwilliams/java](https://github.com/lloydwilliams/java) | Added by [GitHub](https://dd.slack.com/services/B01UE8GJNHG)
