@@ -26,3 +26,6 @@
 hs_err_pid*
 replay_pid*
 payroll/docker-run/ttaga.sh
+payroll/eclipse/workspace11/otel-payroll/backup/payroll-11.0.1.jar
+payroll/eclipse/workspace11/otel-payroll/backup/logback-spring.xml
+payroll/eclipse/workspace11/otel-payroll/ot-run-otel-payroll.backup
