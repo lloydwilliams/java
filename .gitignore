@@ -29,3 +29,10 @@ payroll/docker-run/ttaga.sh
 payroll/eclipse/workspace11/otel-payroll/backup/payroll-11.0.1.jar
 payroll/eclipse/workspace11/otel-payroll/backup/logback-spring.xml
 payroll/eclipse/workspace11/otel-payroll/ot-run-otel-payroll.backup
+payroll/k8s/datadog-agent/old/datadog-values-aks-2023-07.yaml
+*.original
+payroll/eclipse/workspace11/test-conversion/src/com/datadoghq/test/TestConversion.java
+payroll/eclipse/workspace11/test-conversion/.settings/org.eclipse.jdt.core.prefs
+payroll/eclipse/workspace11/test-conversion/.project
+payroll/eclipse/workspace11/test-conversion/.classpath
+payroll/eclipse/workspace11/test-conversion/src/com/datadoghq/test/TestConversion.java
