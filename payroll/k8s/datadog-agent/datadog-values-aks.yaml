@@ -18,13 +18,15 @@ targetSystem: "linux"
 commonLabels: {}
 # team_name: dev
 
-# registry -- Registry to use for all Agent images (default gcr.io)
+# registry -- Registry to use for all Agent images (default to [gcr.io | eu.gcr.io | asia.gcr.io | public.ecr.aws/datadog] depending on datadog.site value)
 
 ## Currently we offer Datadog Agent images on:
-## GCR - use gcr.io/datadoghq (default)
-## DockerHub - use docker.io/datadog
+## GCR US - use gcr.io/datadoghq
+## GCR Europe - use eu.gcr.io/datadoghq
+## GCR Asia - use asia.gcr.io/datadoghq
 ## AWS - use public.ecr.aws/datadog
-registry: gcr.io/datadoghq
+## DockerHub - use docker.io/datadog
+registry:  # gcr.io/datadoghq
 
 datadog:
   # datadog.apiKey -- Your Datadog API key
@@ -100,7 +102,7 @@ datadog:
   ## * Overall length should not be higher than 80 characters.
   ## Compared to the rules of GKE, dots are allowed whereas they are not allowed on GKE:
   ## https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.locations.clusters#Cluster.FIELDS.name
-  clusterName:  lloyd-aks-payroll
+  clusterName: lloyd-aks-payroll
 
   # datadog.site -- The site of the Datadog intake to send Agent data to.
   # (documentation: https://docs.datadoghq.com/getting_started/site/)
@@ -271,7 +273,7 @@ datadog:
     tlsVerify:  false
     # datadog.kubelet.hostCAPath -- Path (on host) where the Kubelet CA certificate is stored
     # @default -- None (no mount from host)
-    hostCAPath: /etc/kubernetes/certs/kubeletserver.crt
+    hostCAPath:  /etc/kubernetes/certs/kubeletserver.crt
     # datadog.kubelet.agentCAPath -- Path (inside Agent containers) where the Kubelet CA certificate is stored
     # @default -- /var/run/host-kubelet-ca.crt if hostCAPath else /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
     agentCAPath:
@@ -463,6 +465,20 @@ datadog:
     # datadog.apm.hostSocketPath -- Host path to the trace-agent socket
     hostSocketPath: /var/run/datadog/
 
+    # APM Single Step Instrumentation
+    # This feature is in beta. It requires Cluster Agent 7.49+.
+    instrumentation:
+      # datadog.apm.instrumentation.enabled -- Enable injecting the Datadog APM libraries into all pods in the cluster (beta).
+      enabled: true
+
+      # datadog.apm.instrumentation.enabledNamespaces -- Enable injecting the Datadog APM libraries into pods in specific namespaces (beta).
+      enabledNamespaces: []
+
+      # datadog.apm.instrumentation.disabledNamespaces -- Disable injecting the Datadog APM libraries into pods in specific namespaces (beta).
+      disabledNamespaces: []
+
+      # datadog.apm.instrumentation.libVersions -- Inject specific version of tracing libraries with Single Step Instrumentation (beta).
+      libVersions: {}
   ## OTLP ingest related configuration
   otlp:
     receiver:
@@ -484,6 +500,9 @@ datadog:
           endpoint: "0.0.0.0:4318"
           # datadog.otlp.receiver.protocols.http.useHostPort -- Enable the Host Port for the OTLP/HTTP endpoint
           useHostPort: true
+    logs:
+      # datadog.otlp.logs.enabled -- Enable logs support in the OTLP ingest endpoint
+      enabled: false
 
   # datadog.envFrom -- Set environment variables for all Agents directly from configMaps and/or secrets
 
@@ -634,7 +653,9 @@ datadog:
 
   containerImageCollection:
     # datadog.containerImageCollection.enabled -- Enable collection of container image metadata
-    enabled: false
+
+    # This parameter requires Agent version 7.46+
+    enabled: true
 
   orchestratorExplorer:
     # datadog.orchestratorExplorer.enabled -- Set this to false to disable the orchestrator explorer
@@ -663,11 +684,11 @@ datadog:
   helmCheck:
     # datadog.helmCheck.enabled -- Set this to true to enable the Helm check (Requires Agent 7.35.0+ and Cluster Agent 1.19.0+)
     # This requires clusterAgent.enabled to be set to true
-    enabled: false
+    enabled: true
 
     # datadog.helmCheck.collectEvents -- Set this to true to enable event collection in the Helm Check (Requires Agent 7.36.0+ and Cluster Agent 1.20.0+)
     # This requires datadog.HelmCheck.enabled to be set to true
-    collectEvents: false
+    collectEvents: true
 
     # datadog.helmCheck.valuesAsTags -- Collects Helm values from a release and uses them as tags (Requires Agent and Cluster Agent 7.40.0+).
     # This requires datadog.HelmCheck.enabled to be set to true
@@ -676,7 +697,7 @@ datadog:
 
   networkMonitoring:
     # datadog.networkMonitoring.enabled -- Enable network performance monitoring
-    enabled: false
+    enabled: true
 
   serviceMonitoring:
     # datadog.serviceMonitoring.enabled -- Enable Universal Service Monitoring
@@ -687,6 +708,12 @@ datadog:
     containerImage:
       # datadog.sbom.containerImage.enabled -- Enable SBOM collection for container images
       enabled: false
+
+      # datadog.sbom.containerImage.uncompressedLayersSupport -- Use container runtime snapshotter
+      # This should be set to true when using EKS, GKE or if containerd is configured to
+      # discard uncompressed layers.
+      # This feature will cause the SYS_ADMIN capability to be added to the Agent container.
+      uncompressedLayersSupport: false
 
     host:
       # datadog.sbom.host.enabled -- Enable SBOM collection for host filesystems
@@ -749,8 +776,16 @@ datadog:
           enabled: false
 
       securityProfile:
-        # datadog.securityAgent.runtime.securityProfile.enabled -- Set to true to enable CWS runtime anomaly detection
-        enabled: false
+        # datadog.securityAgent.runtime.securityProfile.enabled -- Set to true to enable CWS runtime security profiles
+        enabled: true
+
+        anomalyDetection:
+          # datadog.securityAgent.runtime.securityProfile.anomalyDetection.enabled -- Set to true to enable CWS runtime drift events
+          enabled: true
+
+        autoSuppression:
+          # datadog.securityAgent.runtime.securityProfile.autoSuppression.enabled -- Set to true to enable CWS runtime auto suppression
+          enabled: true
 
   ## Manage NetworkPolicy
   networkPolicy:
@@ -856,7 +891,7 @@ clusterAgent:
     name: cluster-agent
 
     # clusterAgent.image.tag -- Cluster Agent image tag to use
-    tag: 7.49.0
+    tag: 7.51.0
 
     # clusterAgent.image.digest -- Cluster Agent image digest to use, takes precedence over tag if specified
     digest: ""
@@ -1241,7 +1276,7 @@ fips:
     name: fips-proxy
 
     # fips.image.tag -- Define the FIPS sidecar container version to use.
-    tag: 0.6.1
+    tag: 1.1.1
 
     # fips.image.pullPolicy -- Datadog the FIPS sidecar image pull policy
     pullPolicy: IfNotPresent
@@ -1284,7 +1319,7 @@ agents:
     name: agent
 
     # agents.image.tag -- Define the Agent version to use
-    tag: 7.49.0
+    tag: 7.51.0
 
     # agents.image.digest -- Define Agent image digest to use, takes precedence over tag if specified
     digest: ""
@@ -1752,7 +1787,7 @@ clusterChecksRunner:
     name: agent
 
     # clusterChecksRunner.image.tag -- Define the Agent version to use
-    tag: 7.49.0
+    tag: 7.51.0
 
     # clusterChecksRunner.image.digest -- Define Agent image digest to use, takes precedence over tag if specified
     digest: ""
@@ -1762,7 +1797,7 @@ clusterChecksRunner:
     ## Ex:
     ##  jmx        to enable jmx fetch collection
     ##  servercore to get Windows images based on servercore
-    tagSuffix: ""
+    tagSuffix: jmx
 
     # clusterChecksRunner.image.repository -- Override default registry + image.name for Cluster Check Runners
     repository:
@@ -1777,7 +1812,7 @@ clusterChecksRunner:
     #   - name: "<REG_SECRET>"
 
   # clusterChecksRunner.createPodDisruptionBudget -- Create the pod disruption budget to apply to the cluster checks agents
-  createPodDisruptionBudget: false
+  createPodDisruptionBudget: true
 
   # Provide Cluster Checks Deployment pods RBAC configuration
   rbac:
